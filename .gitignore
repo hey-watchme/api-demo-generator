@@ -17,3 +17,7 @@ env/
 *.swp
 *.swo
 .DS_Store
+
+# Lambda
+lambda/response.json
+lambda/*.zip

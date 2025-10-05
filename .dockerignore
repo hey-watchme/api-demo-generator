@@ -1,0 +1,45 @@
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+api/venv/
+api/env/
+*.egg-info/
+.eggs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Environment
+.env
+.env.local
+
+# Lambda
+lambda/
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+test_*
+*_test.py
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore

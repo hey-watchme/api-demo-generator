@@ -242,27 +242,239 @@ def lambda_handler(event, context):
 
 ## 実装状況
 
-### ✅ 実装済み（child_5yo）
+### ✅ 実装済み
+- [x] **3つのペルソナ対応** (child_5yo, adult_30s, elderly_70s)
 - [x] 48ブロック全体のvibe_scores生成（現在時刻以降はnull）
 - [x] ルールベースの1日パターン（睡眠、食事ピーク含む）
 - [x] burst_eventsの自動検出（変化量15以上）
 - [x] analysis_resultの生成
 - [x] insightsの自動生成
 - [x] 時刻に応じた累積データ計算
+- [x] **EC2/Dockerデプロイ完了** (2025-10-03)
+- [x] **Lambda関数デプロイ完了** (2025-10-03)
+- [x] **EventBridge自動実行設定完了** (30分ごと)
 
 ### 🚧 今後の拡張
-- [ ] adult_30s, elderly_70sのペルソナパターン実装
 - [ ] 曜日・季節による変動
 - [ ] 複数日にわたるデータ生成
 - [ ] より詳細なprompt生成ロジック
-- [ ] EC2/Dockerデプロイ
-- [ ] Lambda関数の更新（API呼び出し対応）
 
 ## ポート番号
 
 - **8020**: Demo Generator API
 - 他のAPIとの衝突を避けるため
 
-## デプロイ
+## 📦 デプロイ手順
 
-Docker化してEC2またはECSにデプロイ予定
+### 🚀 自動デプロイ（CI/CD）- 推奨
+
+> **📘 詳細**: [CI/CD標準仕様書](../../server-configs/CICD_STANDARD_SPECIFICATION.md)を参照
+
+mainブランチへのプッシュで自動的にデプロイ：
+
+```bash
+git add .
+git commit -m "feat: 新機能の追加"
+git push origin main
+```
+
+**CI/CDプロセス**:
+1. GitHub ActionsがECRにDockerイメージをプッシュ
+2. GitHub Secretsから環境変数を取得してEC2に`.env`ファイルを作成
+3. Docker Composeでコンテナを再起動
+
+### 必要なGitHub Secrets設定
+
+```
+AWS_ACCESS_KEY_ID       # AWS認証
+AWS_SECRET_ACCESS_KEY   # AWS認証
+EC2_HOST                # デプロイ先EC2
+EC2_SSH_PRIVATE_KEY     # SSH接続用
+EC2_USER                # SSHユーザー
+SUPABASE_URL            # Supabase URL（重要）
+SUPABASE_KEY            # Supabase APIキー（重要）
+```
+
+### 手動デプロイ（非推奨）
+
+CI/CDを使用せずに手動でデプロイする場合のみ：
+
+```bash
+# EC2で実行
+ssh -i ~/watchme-key.pem ubuntu@3.24.16.82
+cd /home/ubuntu/demo-generator
+./run-prod.sh
+```
+
+## 🚀 本番環境
+
+### アクセス情報
+- **外部URL**: `https://api.hey-watch.me/demo-generator/`
+- **内部ポート**: `8020`
+- **コンテナ名**: `demo-generator-api`
+- **EC2サーバー**: `3.24.16.82`
+- **ECRリポジトリ**: `754724220380.dkr.ecr.ap-southeast-2.amazonaws.com/watchme-api-demo-generator`
+
+### API利用方法
+
+#### 外部からのアクセス
+```bash
+# API情報
+curl https://api.hey-watch.me/demo-generator/
+
+# ヘルスチェック
+curl https://api.hey-watch.me/demo-generator/health
+
+# ペルソナ一覧
+curl https://api.hey-watch.me/demo-generator/personas
+
+# デモデータ生成
+curl -X POST https://api.hey-watch.me/demo-generator/generate \
+  -H "Content-Type: application/json" \
+  -d '{"persona_id": "child_5yo"}'
+```
+
+#### 内部からのアクセス
+```bash
+# ローカルホスト経由
+curl http://localhost:8020/health
+
+# テストデータで処理実行
+curl -X POST http://localhost:8020/generate \
+  -H "Content-Type: application/json" \
+  -d '{"persona_id": "child_5yo"}'
+```
+
+### 運用管理コマンド
+
+#### SSH接続
+```bash
+# 本番環境へのSSH接続
+ssh -i ~/watchme-key.pem ubuntu@3.24.16.82
+```
+
+#### サービス管理
+```bash
+# コンテナ確認
+docker ps | grep demo-generator
+
+# ログ確認
+docker logs demo-generator-api --tail 100 -f
+
+# コンテナ再起動
+cd /home/ubuntu/demo-generator
+docker-compose -f docker-compose.prod.yml restart
+
+# コンテナ停止・削除・再起動
+docker-compose -f docker-compose.prod.yml down
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### 重要な設定情報
+- **ECRリポジトリ**: `754724220380.dkr.ecr.ap-southeast-2.amazonaws.com/watchme-api-demo-generator`
+- **リージョン**: `ap-southeast-2`
+- **ポート**: 8020
+- **コンテナ名**: `demo-generator-api`
+- **設定ファイル**: `/home/ubuntu/demo-generator/.env`
+- **docker-compose**: `/home/ubuntu/demo-generator/docker-compose.prod.yml`
+- **メモリ制限**: 512MB（docker-compose.prod.ymlで設定済み）
+- **Nginx設定**: `/demo-generator/` → `localhost:8020`に転送
+
+### 環境変数
+```bash
+# /home/ubuntu/demo-generator/.env
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+```
+
+## 🎉 デプロイ完了状況（2025-10-03）
+
+### システム全体が稼働中
+
+すべてのコンポーネントが正常にデプロイされ、30分ごとに自動実行されています。
+
+#### ✅ 1. Demo Generator API
+- **URL**: `https://api.hey-watch.me/demo-generator/`
+- **ステータス**: 稼働中
+- **デプロイ日**: 2025-10-03
+- **systemdサービス**: `demo-generator-api.service`
+- **動作確認**:
+  ```bash
+  curl https://api.hey-watch.me/demo-generator/health
+  # {"status":"healthy","timestamp":"2025-10-03T..."}
+  ```
+
+#### ✅ 2. Lambda関数
+- **関数名**: `watchme-demo-data-generator`
+- **ステータス**: デプロイ済み・稼働中
+- **リージョン**: ap-southeast-2
+- **実行時間**: 約1.3秒
+- **メモリ使用**: 57MB / 256MB
+- **動作確認**:
+  ```bash
+  aws lambda invoke --function-name watchme-demo-data-generator \
+    --region ap-southeast-2 response.json
+  # 3つのペルソナすべて成功
+  ```
+
+#### ✅ 3. EventBridge自動実行
+- **スケジュール名**: `watchme-demo-data-generator-schedule`
+- **ステータス**: 有効
+- **Cron式**: `0/30 * * * ? *`（30分ごと）
+- **タイムゾーン**: Asia/Tokyo
+- **次回実行**: 毎時00分・30分
+
+### 自動生成されるデータ
+
+30分ごとに以下のペルソナのデータが自動生成されます：
+
+| ペルソナID | デバイスID | 説明 |
+|-----------|-----------|------|
+| `child_5yo` | `a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d` | 5歳男児（幼稚園年長） |
+| `adult_30s` | `00000000-0000-0000-0001-000000000002` | 30代会社員（エンジニア） |
+| `elderly_70s` | `00000000-0000-0000-0001-000000000003` | 70代高齢者（退職） |
+
+### 監視とメンテナンス
+
+#### Lambda実行ログの確認
+```bash
+# CloudWatch Logsで確認
+aws logs tail /aws/lambda/watchme-demo-data-generator --follow --region ap-southeast-2
+```
+
+#### APIログの確認
+```bash
+# EC2サーバーでコンテナログを確認
+ssh -i ~/watchme-key.pem ubuntu@3.24.16.82
+docker logs demo-generator-api --tail 100 -f
+```
+
+#### サービスステータス確認
+```bash
+# systemdサービス確認
+ssh -i ~/watchme-key.pem ubuntu@3.24.16.82
+sudo systemctl status demo-generator-api.service
+```
+
+### トラブルシューティング
+
+#### APIが応答しない場合
+```bash
+# サービス再起動
+ssh -i ~/watchme-key.pem ubuntu@3.24.16.82
+sudo systemctl restart demo-generator-api.service
+```
+
+#### Lambda関数のエラー
+```bash
+# 最新の実行ログを確認
+aws lambda invoke --function-name watchme-demo-data-generator \
+  --region ap-southeast-2 --log-type Tail response.json
+cat response.json | jq
+```
+
+#### データが生成されない場合
+1. EventBridgeルールが有効化されているか確認
+2. Lambda関数の実行ログを確認
+3. APIのヘルスチェックを確認
+4. Supabaseの`dashboard_summary`テーブルを確認

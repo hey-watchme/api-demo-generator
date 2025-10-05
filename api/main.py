@@ -143,6 +143,177 @@ def generate_vibe_scores_until(block_index: int, persona_id: str) -> List:
     return result
 
 
+def generate_behavior_summary(block_index: int, persona_id: str) -> dict:
+    """behavior_summary用のデータを生成"""
+    if persona_id != "child_5yo":
+        # child_5yo以外は空データを返す
+        return {
+            "summary_ranking": [],
+            "time_blocks": {}
+        }
+
+    # 一般的な子供の行動イベントパターン
+    all_events = [
+        {"event": "話し声", "category": "voice", "priority": True},
+        {"event": "子供の話し声", "category": "voice", "priority": True},
+        {"event": "赤ちゃんの喃語", "category": "voice", "priority": True},
+        {"event": "歌声", "category": "voice", "priority": True},
+        {"event": "沸騰する音", "category": "daily_life", "priority": True},
+        {"event": "Water sounds", "category": "daily_life", "priority": True},
+        {"event": "Dishes", "category": "daily_life", "priority": True},
+        {"event": "食器棚の開閉", "category": "daily_life", "priority": True},
+        {"event": "低周波ノイズ", "category": "other", "priority": False},
+        {"event": "動物", "category": "other", "priority": False},
+        {"event": "室内（小部屋）", "category": "other", "priority": False},
+        {"event": "音楽", "category": "other", "priority": False},
+    ]
+
+    # 時間帯ごとのイベントパターン（48ブロック）
+    time_blocks = {}
+    for i in range(48):
+        hour = i // 2
+        minute = "30" if i % 2 == 1 else "00"
+        block_key = f"{hour:02d}-{minute}"
+
+        # 現在時刻以降はスキップ（後でnullにする）
+        if i > block_index:
+            continue
+
+        # 時間帯に応じたイベント
+        events = []
+
+        # 睡眠時間（00:00-06:30）
+        if 0 <= i <= 12:
+            events = [{"count": 3 + (i % 3), "event": "低周波ノイズ"}]
+        # 朝の準備（07:00-08:30）
+        elif 13 <= i <= 16:
+            events = [
+                {"count": 1, "event": "食器棚の開閉"},
+                {"count": 2, "event": "話し声"},
+                {"count": 1, "event": "Water sounds"}
+            ]
+        # 登園・活動時間（09:00-11:30）
+        elif 17 <= i <= 22:
+            events = [
+                {"count": 6, "event": "話し声"},
+                {"count": 2 + (i % 2), "event": "子供の話し声"}
+            ]
+        # 昼食時間（12:00-13:30）
+        elif 23 <= i <= 26:
+            events = [
+                {"count": 6, "event": "話し声"},
+                {"count": 2, "event": "Dishes"},
+                {"count": 1, "event": "食器棚の開閉"}
+            ]
+        # 午後の活動（14:00-16:30）
+        elif 27 <= i <= 32:
+            events = [
+                {"count": 4 + (i % 3), "event": "話し声"},
+                {"count": 2, "event": "動物"}
+            ]
+        # 夕方（17:00-18:30）
+        elif 33 <= i <= 36:
+            events = [
+                {"count": 5, "event": "Water sounds"},
+                {"count": 2, "event": "音楽"},
+                {"count": 1, "event": "Dishes"}
+            ]
+        # 夕食・家族時間（19:00-20:30）
+        elif 37 <= i <= 40:
+            events = [
+                {"count": 6, "event": "話し声"},
+                {"count": 2, "event": "Dishes"},
+                {"count": 2, "event": "室内（小部屋）"}
+            ]
+        # 就寝準備（21:00-23:30）
+        else:
+            events = [
+                {"count": 3, "event": "歌声"},
+                {"count": 2, "event": "低周波ノイズ"}
+            ]
+
+        time_blocks[block_key] = events
+
+    # summary_rankingを生成（全イベントの集計）
+    summary_ranking = []
+    event_counts = {}
+
+    for block_events in time_blocks.values():
+        for event_data in block_events:
+            event_name = event_data["event"]
+            if event_name not in event_counts:
+                event_counts[event_name] = 0
+            event_counts[event_name] += event_data["count"]
+
+    # ランキング形式に変換
+    for event_name, count in sorted(event_counts.items(), key=lambda x: x[1], reverse=True):
+        event_info = next((e for e in all_events if e["event"] == event_name),
+                         {"category": "other", "priority": False})
+        summary_ranking.append({
+            "count": count,
+            "event": event_name,
+            "category": event_info["category"],
+            "priority": event_info["priority"]
+        })
+
+    return {
+        "summary_ranking": summary_ranking,
+        "time_blocks": time_blocks
+    }
+
+
+def generate_emotion_graph(block_index: int, persona_id: str) -> List:
+    """emotion_opensmile_summary用の感情グラフを生成（48ブロック）"""
+    if persona_id != "child_5yo":
+        # child_5yo以外は空配列を返す
+        return []
+
+    # 8感情のベースパターン（joy, fear, anger, trust, disgust, sadness, surprise, anticipation）
+    # 子供の1日の感情パターン
+    emotion_patterns = []
+
+    for i in range(48):
+        hour = i // 2
+        minute = "30" if i % 2 == 1 else "00"
+        time_str = f"{hour:02d}:{minute}"
+
+        # 時間帯に応じた感情スコア
+        # 睡眠時間（00:00-06:30）
+        if 0 <= i <= 12:
+            emotions = {"joy": 10, "fear": 0, "anger": 5, "trust": 5, "disgust": 1, "sadness": 0, "surprise": 2, "anticipation": 3}
+        # 起床時間（07:00-08:30）
+        elif 13 <= i <= 16:
+            emotions = {"joy": 5, "fear": 1, "anger": 2, "trust": 4, "disgust": 0, "sadness": 3, "surprise": 2, "anticipation": 3}
+        # 活動時間（09:00-11:30）
+        elif 17 <= i <= 22:
+            emotions = {"joy": 10, "fear": 0, "anger": 0, "trust": 5, "disgust": 0, "sadness": 2, "surprise": 2, "anticipation": 3}
+        # 昼食時間（12:00-13:30）
+        elif 23 <= i <= 26:
+            emotions = {"joy": 7, "fear": 2, "anger": 5, "trust": 3, "disgust": 1, "sadness": 8, "surprise": 2, "anticipation": 2}
+        # 午後の活動（14:00-16:30）
+        elif 27 <= i <= 32:
+            emotions = {"joy": 0, "fear": 0, "anger": 10, "trust": 0, "disgust": 2, "sadness": 0, "surprise": 0, "anticipation": 0}
+        # 夕方（17:00-18:30）
+        elif 33 <= i <= 36:
+            emotions = {"joy": 10, "fear": 1, "anger": 5, "trust": 5, "disgust": 2, "sadness": 2, "surprise": 2, "anticipation": 4}
+        # 夕食・家族時間（19:00-20:30）
+        elif 37 <= i <= 40:
+            emotions = {"joy": 0, "fear": 0, "anger": 10, "trust": 0, "disgust": 2, "sadness": 0, "surprise": 0, "anticipation": 0}
+        # 就寝準備（21:00-23:30）
+        else:
+            emotions = {"joy": 10, "fear": 1, "anger": 3, "trust": 5, "disgust": 1, "sadness": 5, "surprise": 2, "anticipation": 3}
+
+        # 現在時刻以降はnullにする
+        if i <= block_index:
+            emotion_data = {**emotions, "time": time_str}
+            emotion_patterns.append(emotion_data)
+        else:
+            # 将来的にはnullを入れる予定だが、配列なので要素自体を追加しない
+            pass
+
+    return emotion_patterns
+
+
 def generate_prompt(persona_id: str, date: str, block_index: int) -> str:
     """ペルソナと時刻に応じたプロンプトを生成"""
     persona = PERSONAS.get(persona_id)
@@ -280,7 +451,7 @@ async def list_personas():
 
 @app.post("/generate")
 async def generate_and_save(request: GenerateRequest):
-    """デモデータを生成してSupabaseに保存"""
+    """デモデータを生成してSupabaseに保存（3つのテーブル）"""
 
     # Supabase接続確認
     if not SUPABASE_URL or not SUPABASE_KEY:
@@ -289,6 +460,10 @@ async def generate_and_save(request: GenerateRequest):
     # ペルソナ確認
     if request.persona_id not in PERSONAS:
         raise HTTPException(status_code=404, detail=f"Persona '{request.persona_id}' not found")
+
+    # child_5yo以外は一旦スキップ
+    if request.persona_id != "child_5yo":
+        raise HTTPException(status_code=400, detail=f"Only 'child_5yo' is currently supported")
 
     # 日付・時刻の決定
     jst_now = get_jst_time()
@@ -307,12 +482,39 @@ async def generate_and_save(request: GenerateRequest):
         block_index, block_str = calculate_time_block(jst_now)
 
     try:
-        # データ生成
+        # 1. dashboard_summaryのデータ生成
         demo_data = generate_demo_data(request.persona_id, date, block_index, block_str)
 
-        # Supabaseに保存
+        # 2. behavior_summaryのデータ生成
+        behavior_data = generate_behavior_summary(block_index, request.persona_id)
+        behavior_record = {
+            "device_id": PERSONAS[request.persona_id]["device_id"],
+            "date": date,
+            "summary_ranking": behavior_data["summary_ranking"],
+            "time_blocks": behavior_data["time_blocks"]
+        }
+
+        # 3. emotion_opensmile_summaryのデータ生成
+        emotion_graph = generate_emotion_graph(block_index, request.persona_id)
+        emotion_record = {
+            "device_id": PERSONAS[request.persona_id]["device_id"],
+            "date": date,
+            "emotion_graph": emotion_graph,
+            "file_path": "",
+            "created_at": get_jst_time().isoformat()
+        }
+
+        # Supabaseに保存（3つのテーブル）
         supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-        result = supabase.table("dashboard_summary").upsert(demo_data).execute()
+
+        # dashboard_summaryに保存
+        result1 = supabase.table("dashboard_summary").upsert(demo_data).execute()
+
+        # behavior_summaryに保存
+        result2 = supabase.table("behavior_summary").upsert(behavior_record).execute()
+
+        # emotion_opensmile_summaryに保存
+        result3 = supabase.table("emotion_opensmile_summary").upsert(emotion_record).execute()
 
         return {
             "success": True,
@@ -321,7 +523,8 @@ async def generate_and_save(request: GenerateRequest):
             "date": date,
             "time_block": block_str,
             "processed_count": demo_data["processed_count"],
-            "message": "Demo data generated and saved successfully"
+            "tables_updated": ["dashboard_summary", "behavior_summary", "emotion_opensmile_summary"],
+            "message": "Demo data generated and saved successfully to all tables"
         }
 
     except Exception as e:
