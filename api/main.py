@@ -314,6 +314,145 @@ def generate_emotion_graph(block_index: int, persona_id: str) -> List:
     return emotion_patterns
 
 
+# 5歳児の1日のルーティン（48ブロック分のスタティックデータ）
+CHILD_5YO_DAILY_ROUTINE = [
+    # 00:00-00:30 (0)
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    # 00:30-01:00 (1)
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    # 01:00-01:30 (2)
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    # 01:30-02:00 (3)
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    # 02:00-02:30 (4)
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    # 02:30-03:00 (5)
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    # 03:00-03:30 (6)
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    # 03:30-04:00 (7)
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    # 04:00-04:30 (8)
+    {"summary": "早朝、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    # 04:30-05:00 (9)
+    {"summary": "早朝、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    # 05:00-05:30 (10)
+    {"summary": "早朝、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    # 05:30-06:00 (11)
+    {"summary": "早朝、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    # 06:00-06:30 (12)
+    {"summary": "早朝、まだ睡眠中だが、そろそろ起床の時間。", "behavior": "睡眠", "vibe_score": 0},
+    # 06:30-07:00 (13)
+    {"summary": "起床時刻。目覚めてゆっくりと起き上がる様子。", "behavior": "準備", "vibe_score": 10},
+    # 07:00-07:30 (14)
+    {"summary": "朝の準備が始まる。着替えや洗面を行っている。", "behavior": "準備, 着替え, 歯磨き", "vibe_score": 20},
+    # 07:30-08:00 (15)
+    {"summary": "朝食の時間。家族と一緒に食事をしている。", "behavior": "食事, 家族団らん", "vibe_score": 35},
+    # 08:00-08:30 (16)
+    {"summary": "朝食後、幼稚園の準備を整えている。", "behavior": "準備", "vibe_score": 30},
+    # 08:30-09:00 (17)
+    {"summary": "幼稚園へ向かう時間。移動中または登園準備。", "behavior": "移動, 準備", "vibe_score": 25},
+    # 09:00-09:30 (18)
+    {"summary": "幼稚園に到着。友達と遊び始める。", "behavior": "遊び, 友達と遊ぶ", "vibe_score": 40},
+    # 09:30-10:00 (19)
+    {"summary": "午前の活動時間。園での遊びや学習活動に参加。", "behavior": "遊び, 学習", "vibe_score": 35},
+    # 10:00-10:30 (20)
+    {"summary": "午前中、友達と元気に遊んでいる。", "behavior": "遊び, 友達と遊ぶ", "vibe_score": 40},
+    # 10:30-11:00 (21)
+    {"summary": "午前の活動が続く。ブロック遊びなどに夢中。", "behavior": "遊び", "vibe_score": 35},
+    # 11:00-11:30 (22)
+    {"summary": "昼食前の活動。少しずつお腹が空いてくる時間。", "behavior": "遊び, 準備", "vibe_score": 30},
+    # 11:30-12:00 (23)
+    {"summary": "給食の準備。手を洗い、配膳を待っている。", "behavior": "準備, 待機", "vibe_score": 25},
+    # 12:00-12:30 (24)
+    {"summary": "給食の時間。友達と一緒に楽しく食事。", "behavior": "食事, 友達と遊ぶ", "vibe_score": 45},
+    # 12:30-13:00 (25)
+    {"summary": "給食後、ゆっくりと休憩時間。", "behavior": "休憩", "vibe_score": 30},
+    # 13:00-13:30 (26)
+    {"summary": "午後の活動開始前の準備時間。", "behavior": "準備, 休憩", "vibe_score": 25},
+    # 13:30-14:00 (27)
+    {"summary": "午後の活動。園庭で外遊びや運動。", "behavior": "遊び, 運動", "vibe_score": 40},
+    # 14:00-14:30 (28)
+    {"summary": "午後の活動が続く。友達と元気に遊ぶ。", "behavior": "遊び, 友達と遊ぶ", "vibe_score": 40},
+    # 14:30-15:00 (29)
+    {"summary": "降園準備の時間。荷物をまとめている。", "behavior": "準備, 片付け", "vibe_score": 25},
+    # 15:00-15:30 (30)
+    {"summary": "幼稚園から帰宅。家に向かう移動中。", "behavior": "移動", "vibe_score": 20},
+    # 15:30-16:00 (31)
+    {"summary": "帰宅後、おやつの時間。少し休憩。", "behavior": "食事, 休憩", "vibe_score": 35},
+    # 16:00-16:30 (32)
+    {"summary": "自由時間。マインクラフトで遊び始める。", "behavior": "ゲーム, 遊び", "vibe_score": 50},
+    # 16:30-17:00 (33)
+    {"summary": "マインクラフトに夢中。楽しく遊んでいる。", "behavior": "ゲーム", "vibe_score": 55},
+    # 17:00-17:30 (34)
+    {"summary": "引き続きゲームや遊びを楽しんでいる。", "behavior": "ゲーム, 遊び", "vibe_score": 50},
+    # 17:30-18:00 (35)
+    {"summary": "夕方の時間。少し疲れが見え始める。", "behavior": "休憩, 遊び", "vibe_score": 30},
+    # 18:00-18:30 (36)
+    {"summary": "夕食の準備時間。家族が集まり始める。", "behavior": "待機, 準備", "vibe_score": 25},
+    # 18:30-19:00 (37)
+    {"summary": "夕食の時間。家族で食卓を囲む。", "behavior": "食事, 家族団らん", "vibe_score": 45},
+    # 19:00-19:30 (38)
+    {"summary": "夕食後、家族とゆっくり過ごす時間。", "behavior": "家族団らん, 会話", "vibe_score": 40},
+    # 19:30-20:00 (39)
+    {"summary": "お風呂の時間。入浴の準備と入浴。", "behavior": "入浴, 準備", "vibe_score": 35},
+    # 20:00-20:30 (40)
+    {"summary": "お風呂上がり。就寝準備を始める。", "behavior": "準備, 歯磨き", "vibe_score": 25},
+    # 20:30-21:00 (41)
+    {"summary": "就寝前のリラックスタイム。絵本を読んだりテレビを見る。", "behavior": "休憩, 読書, テレビ", "vibe_score": 20},
+    # 21:00-21:30 (42)
+    {"summary": "就寝時刻。布団に入り、眠りにつく準備。", "behavior": "睡眠, 準備", "vibe_score": 10},
+    # 21:30-22:00 (43)
+    {"summary": "就寝。静かに眠りについている。", "behavior": "睡眠", "vibe_score": 0},
+    # 22:00-22:30 (44)
+    {"summary": "夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    # 22:30-23:00 (45)
+    {"summary": "夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    # 23:00-23:30 (46)
+    {"summary": "夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    # 23:30-00:00 (47)
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+]
+
+
+def generate_dashboard_record(persona_id: str, date: str, block_index: int, block_str: str) -> dict:
+    """dashboardテーブル用のレコードを生成（現在のtime_blockのみ）"""
+    if persona_id != "child_5yo":
+        raise ValueError(f"Only 'child_5yo' is currently supported")
+
+    persona = PERSONAS[persona_id]
+
+    # 48ブロック分のデータから該当ブロックを取得
+    if block_index < 0 or block_index >= 48:
+        raise ValueError(f"Invalid block_index: {block_index}")
+
+    routine_data = CHILD_5YO_DAILY_ROUTINE[block_index]
+
+    # 現在時刻
+    now = get_jst_time()
+
+    # analysis_resultをJSON文字列形式で生成（CSVサンプルと同じ形式）
+    analysis_result_json = f'''{{"time_block": "{block_str}", "summary": "{routine_data['summary']}", "behavior": "{routine_data['behavior']}", "vibe_score": {routine_data['vibe_score']}}}'''
+
+    # dashboardレコード
+    record = {
+        "device_id": persona["device_id"],
+        "date": date,
+        "time_block": block_str,
+        "summary": routine_data["summary"],
+        "vibe_score": routine_data["vibe_score"],
+        "behavior": routine_data["behavior"],
+        "prompt": None,  # 不要
+        "analysis_result": analysis_result_json,
+        "status": "completed",
+        "processed_at": now.isoformat(),
+        "created_at": now.isoformat(),
+        "updated_at": now.isoformat()
+    }
+
+    return record
+
+
 def generate_prompt(persona_id: str, date: str, block_index: int) -> str:
     """ペルソナと時刻に応じたプロンプトを生成"""
     persona = PERSONAS.get(persona_id)
@@ -504,7 +643,10 @@ async def generate_and_save(request: GenerateRequest):
             "created_at": get_jst_time().isoformat()
         }
 
-        # Supabaseに保存（3つのテーブル）
+        # 4. dashboardテーブル用のデータ生成（現在のtime_blockのみ）
+        dashboard_record = generate_dashboard_record(request.persona_id, date, block_index, block_str)
+
+        # Supabaseに保存（4つのテーブル）
         supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
         # dashboard_summaryに保存
@@ -516,6 +658,9 @@ async def generate_and_save(request: GenerateRequest):
         # emotion_opensmile_summaryに保存
         result3 = supabase.table("emotion_opensmile_summary").upsert(emotion_record).execute()
 
+        # dashboardに保存（UPSERT: 同じdevice_id+date+time_blockがあれば上書き）
+        result4 = supabase.table("dashboard").upsert(dashboard_record).execute()
+
         return {
             "success": True,
             "persona_id": request.persona_id,
@@ -523,7 +668,7 @@ async def generate_and_save(request: GenerateRequest):
             "date": date,
             "time_block": block_str,
             "processed_count": demo_data["processed_count"],
-            "tables_updated": ["dashboard_summary", "behavior_summary", "emotion_opensmile_summary"],
+            "tables_updated": ["dashboard_summary", "behavior_summary", "emotion_opensmile_summary", "dashboard"],
             "message": "Demo data generated and saved successfully to all tables"
         }
 
