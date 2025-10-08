@@ -7,7 +7,11 @@
 - **目的**: デモ・カタログ用のリアルなモックデータ生成
 - **ペルソナ**: 複数の年齢層・属性のユーザーデータ
 - **動的生成**: 時刻に応じた累積データ
-- **データ保存先**: Supabase `dashboard_summary` テーブル
+- **データ保存先**: Supabase 4つのテーブル
+  - `dashboard_summary` - 1日の累積サマリーデータ
+  - `behavior_summary` - 行動イベントサマリー
+  - `emotion_opensmile_summary` - 感情グラフデータ
+  - `dashboard` - タイムブロック別の詳細データ（30分ごとにリアルタイム追加）
 
 ## アーキテクチャ
 
@@ -159,7 +163,7 @@ cd lambda
 
 ### 生成されるデータ構造
 
-**dashboard_summaryテーブルに保存されるデータ:**
+#### 1. dashboard_summaryテーブル（1日1レコード、累積更新）
 ```json
 {
   "device_id": "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
@@ -185,6 +189,33 @@ cd lambda
   }
 }
 ```
+
+#### 2. dashboardテーブル（タイムブロックごとに新規レコード追加）
+30分ごとに現在のtime_blockのデータを1件INSERTします。
+
+**データ形式:**
+```json
+{
+  "device_id": "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+  "date": "2025-10-08",
+  "time_block": "15-00",
+  "summary": "幼稚園から帰宅。家に向かう移動中。",
+  "vibe_score": 20,
+  "behavior": "移動",
+  "prompt": null,
+  "analysis_result": "{\"time_block\": \"15-00\", \"summary\": \"幼稚園から帰宅。家に向かう移動中。\", \"behavior\": \"移動\", \"vibe_score\": 20}",
+  "status": "completed",
+  "processed_at": "2025-10-08T15:00:00+09:00",
+  "created_at": "2025-10-08T15:00:00+09:00",
+  "updated_at": "2025-10-08T15:00:00+09:00"
+}
+```
+
+**特徴:**
+- リアルタイムモック: 30分ごとに現在のtime_blockのデータのみ生成
+- 1日48レコード: 00-00から23-30まで、時刻が来るたびに追加
+- 5歳児の1日ルーティン: 睡眠、起床、幼稚園、帰宅、遊び、夕食、就寝など
+- iOSアプリのダッシュボード表示用データ
 
 ## 使用例
 
@@ -244,17 +275,25 @@ def lambda_handler(event, context):
 
 ### ✅ 実装済み
 - [x] **3つのペルソナ対応** (child_5yo, adult_30s, elderly_70s)
+- [x] **4つのテーブルへのデータ生成**
+  - [x] dashboard_summary - 累積サマリー
+  - [x] behavior_summary - 行動イベント
+  - [x] emotion_opensmile_summary - 感情グラフ
+  - [x] **dashboard - タイムブロック別詳細データ（2025-10-08追加）**
 - [x] 48ブロック全体のvibe_scores生成（現在時刻以降はnull）
 - [x] ルールベースの1日パターン（睡眠、食事ピーク含む）
+- [x] **child_5yoの1日ルーティンデータ（48ブロック分のスタティックデータ）**
 - [x] burst_eventsの自動検出（変化量15以上）
 - [x] analysis_resultの生成
 - [x] insightsの自動生成
 - [x] 時刻に応じた累積データ計算
+- [x] **30分ごとのリアルタイムデータ追加（dashboardテーブル）**
 - [x] **EC2/Dockerデプロイ完了** (2025-10-03)
 - [x] **Lambda関数デプロイ完了** (2025-10-03)
 - [x] **EventBridge自動実行設定完了** (30分ごと)
 
 ### 🚧 今後の拡張
+- [ ] dashboardテーブルのデータをルールベースの動的生成に変更
 - [ ] 曜日・季節による変動
 - [ ] 複数日にわたるデータ生成
 - [ ] より詳細なprompt生成ロジック
