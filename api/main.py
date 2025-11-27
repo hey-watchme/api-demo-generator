@@ -415,39 +415,91 @@ CHILD_5YO_DAILY_ROUTINE = [
 ]
 
 
-def generate_dashboard_record(persona_id: str, date: str, block_index: int, block_str: str) -> dict:
-    """dashboardテーブル用のレコードを生成（現在のtime_blockのみ）"""
+def generate_spot_result_record(persona_id: str, date: str, block_index: int, block_str: str) -> dict:
+    """spot_results table record generation"""
     if persona_id != "child_5yo":
         raise ValueError(f"Only 'child_5yo' is currently supported")
 
     persona = PERSONAS[persona_id]
 
-    # 48ブロック分のデータから該当ブロックを取得
+    # Get data for the current block from 48-block daily routine
     if block_index < 0 or block_index >= 48:
         raise ValueError(f"Invalid block_index: {block_index}")
 
     routine_data = CHILD_5YO_DAILY_ROUTINE[block_index]
 
-    # 現在時刻
+    # Current time (JST)
     now = get_jst_time()
 
-    # analysis_resultをJSON文字列形式で生成（CSVサンプルと同じ形式）
-    analysis_result_json = f'''{{"time_block": "{block_str}", "summary": "{routine_data['summary']}", "behavior": "{routine_data['behavior']}", "vibe_score": {routine_data['vibe_score']}}}'''
+    # Calculate recorded_at timestamp (beginning of the time block)
+    hour = block_index // 2
+    minute = 30 if block_index % 2 == 1 else 0
+    recorded_at_jst = datetime(
+        int(date.split('-')[0]),
+        int(date.split('-')[1]),
+        int(date.split('-')[2]),
+        hour,
+        minute,
+        0,
+        tzinfo=timezone(timedelta(hours=9))
+    )
 
-    # dashboardレコード
+    # Convert to UTC for recorded_at
+    recorded_at_utc = recorded_at_jst.astimezone(timezone.utc)
+
+    # Local time (keep JST)
+    local_time = recorded_at_jst
+
+    # Generate profile_result JSONB structure (matching CSV sample)
+    profile_result = {
+        "summary": routine_data["summary"],
+        "behavior": routine_data["behavior"],
+        "vibe_score": routine_data["vibe_score"],
+        "recorded_at": recorded_at_utc.isoformat(),
+        "acoustic_metrics": {
+            "loudness_range": [-43.0 + (block_index % 10), -18.0 + (block_index % 5)],
+            "dominant_patterns": [
+                {"type": "voice", "count": 2 + (block_index % 3)},
+                {"type": "white_noise", "frequency": "frequent"},
+                {"type": "environmental_sound", "detected": True}
+            ],
+            "pitch_variability": "moderate" if routine_data["vibe_score"] > 20 else "monotone",
+            "rhythm_regularity": 0.6 + (block_index % 10) * 0.01,
+            "speech_time_ratio": 0.04 + (block_index % 20) * 0.01,
+            "average_loudness_db": -26.5 + (block_index % 15),
+            "voice_stability_score": 0.08 + (block_index % 30) * 0.01
+        },
+        "key_observations": [
+            f"Time block: {block_str}",
+            routine_data["summary"],
+            f"Behavior pattern: {routine_data['behavior']}"
+        ],
+        "behavioral_analysis": {
+            "behavior_pattern": routine_data["summary"],
+            "situation_context": f"Demo data for {persona['name']} at {block_str}",
+            "detected_activities": routine_data["behavior"].split(", ")
+        },
+        "psychological_analysis": {
+            "mood_state": "positive" if routine_data["vibe_score"] > 20 else "neutral" if routine_data["vibe_score"] >= 0 else "negative",
+            "emotion_changes": "stable emotional state during this time block",
+            "mood_description": routine_data["summary"]
+        }
+    }
+
+    # spot_results record
     record = {
         "device_id": persona["device_id"],
-        "date": date,
-        "time_block": block_str,
-        "summary": routine_data["summary"],
+        "recorded_at": recorded_at_utc.isoformat(),
         "vibe_score": routine_data["vibe_score"],
-        "behavior": routine_data["behavior"],
-        "prompt": None,  # 不要
-        "analysis_result": analysis_result_json,
-        "status": "completed",
-        "processed_at": now.isoformat(),
+        "profile_result": profile_result,
         "created_at": now.isoformat(),
-        "updated_at": now.isoformat()
+        "llm_model": "demo-generator-static-data",
+        "summary": routine_data["summary"],
+        "behavior": routine_data["behavior"],
+        "local_date": date,
+        "local_time": local_time.isoformat(),
+        "daily_aggregator_status": None,
+        "daily_aggregator_processed_at": None
     }
 
     return record
@@ -477,82 +529,107 @@ def generate_prompt(persona_id: str, date: str, block_index: int) -> str:
 """
 
 
-def generate_demo_data(persona_id: str, date: str, block_index: int, block_str: str) -> dict:
-    """デモデータを生成"""
+def generate_daily_result_record(persona_id: str, date: str, block_index: int, block_str: str) -> dict:
+    """daily_results table record generation (cumulative analysis)"""
     persona = PERSONAS.get(persona_id)
     if not persona:
         raise ValueError(f"Unknown persona: {persona_id}")
 
-    vibe_scores = generate_vibe_scores_until(block_index, persona_id)
+    # Get vibe scores until current block (simple array)
+    vibe_scores_simple = generate_vibe_scores_until(block_index, persona_id)
 
-    # nullを除外してaverage_vibeを計算
-    valid_scores = [score for score in vibe_scores if score is not None]
-    average_vibe = sum(valid_scores) / len(valid_scores) if valid_scores else 0
+    # Convert vibe_scores to daily_results format: [{"time": "ISO8601", "score": value}, ...]
+    vibe_scores = []
+    for i in range(len(vibe_scores_simple)):
+        if vibe_scores_simple[i] is not None:
+            hour = i // 2
+            minute = 30 if i % 2 == 1 else 0
+            time_jst = datetime(
+                int(date.split('-')[0]),
+                int(date.split('-')[1]),
+                int(date.split('-')[2]),
+                hour,
+                minute,
+                0,
+                tzinfo=timezone(timedelta(hours=9))
+            )
+            vibe_scores.append({
+                "time": time_jst.isoformat(),
+                "score": vibe_scores_simple[i]
+            })
 
-    # burst_eventsを生成（大きな変化点を検出）
+    # Calculate average vibe_score
+    valid_scores = [item["score"] for item in vibe_scores]
+    average_vibe_score = sum(valid_scores) / len(valid_scores) if valid_scores else 0
+
+    # Generate burst_events (significant changes)
     burst_events = []
-    for i in range(1, len(vibe_scores)):
-        if vibe_scores[i] is not None and vibe_scores[i-1] is not None:
-            change = vibe_scores[i] - vibe_scores[i-1]
-            # 変化量が15以上、またはスコアのゼロクロス時にバーストイベントとして記録
-            if abs(change) >= 15 or (vibe_scores[i-1] * vibe_scores[i] < 0):
+    for i in range(1, len(vibe_scores_simple)):
+        if vibe_scores_simple[i] is not None and vibe_scores_simple[i-1] is not None:
+            change = vibe_scores_simple[i] - vibe_scores_simple[i-1]
+            # Detect changes >= 15 or zero-crossing
+            if abs(change) >= 15 or (vibe_scores_simple[i-1] * vibe_scores_simple[i] < 0):
                 hour = i // 2
-                minute = "30" if i % 2 == 1 else "00"
-                time_str = f"{hour:02d}:{minute}"
+                minute = 30 if i % 2 == 1 else 0
+                time_str = f"{hour:02d}:{minute:02d}"
 
-                # イベント説明を生成
+                # Generate event description
                 if persona_id == "child_5yo":
                     if i == 14:
-                        event = "朝の起床・準備で機嫌が上昇した"
+                        event = "Morning wake-up and preparation led to mood elevation"
                     elif i == 24:
-                        event = "園での昼食時間で気分が大幅に向上"
+                        event = "Lunch time at kindergarten significantly improved mood"
                     elif i == 13:
-                        event = "起床時の気分向上"
+                        event = "Mood improved upon waking up"
                     else:
                         if change > 0:
-                            event = "気分が向上した"
+                            event = "Mood improved during this period"
                         else:
-                            event = "気分が落ち着いた"
+                            event = "Mood became calmer during this period"
                 else:
-                    event = "気分の変化"
+                    event = "Mood change detected"
 
                 burst_events.append({
                     "time": time_str,
                     "event": event,
-                    "score_change": change,
-                    "from_score": vibe_scores[i-1],
-                    "to_score": vibe_scores[i]
+                    "score_change": abs(change)
                 })
 
-    # analysis_resultを生成
-    analysis_result = {
-        "raw_response": "デモデータのため省略",
-        "processing_error": None,
-        "extracted_content": f"デモユーザー（{persona['name']}）の分析結果"
-    }
-
-    # insightsを生成
+    # Generate summary (Japanese)
     if persona_id == "child_5yo":
-        insights = "朝から昼にかけて、徐々に機嫌が高まり、起床・準備での前向きさが見られた。午前中の園での活動を経て気分は安定域に達し、午後の遊び時間で活発な様子が続いた。デモデータとして生成されたパターンです。"
+        summary = f"{date}は朝の静かな時間帯から始まり、日中にかけて感情の変動が見られました。起床時や園での活動時間に気分が上昇し、午後の遊び時間で活発な様子が続きました。全体として安定した一日でした。"
     else:
-        insights = f"{persona['name']}のデモデータ（{block_str}時点）"
+        summary = f"{persona['name']}のデモデータ（{block_str}時点）"
 
-    data = {
+    # Generate behavior (comma-separated, can be empty)
+    # For demo data, leave it empty as in the CSV sample
+    behavior = ""
+
+    # Generate profile_result (JSONB, can be empty)
+    # For demo data, leave it empty as in the CSV sample
+    profile_result = {}
+
+    # Current time
+    now = get_jst_time()
+
+    # daily_results record
+    record = {
         "device_id": persona["device_id"],
-        "date": date,
-        "prompt": generate_prompt(persona_id, date, block_index),
-        "processed_count": block_index + 1,
-        "last_time_block": block_str,
-        "created_at": get_jst_time().isoformat(),
-        "updated_at": get_jst_time().isoformat(),
-        "average_vibe": average_vibe,
-        "insights": insights,
-        "analysis_result": analysis_result,
+        "local_date": date,
+        "vibe_score": average_vibe_score,
+        "summary": summary,
+        "behavior": behavior,
+        "profile_result": profile_result,
         "vibe_scores": vibe_scores,
-        "burst_events": burst_events
+        "burst_events": burst_events,
+        "processed_count": block_index + 1,
+        "last_time_block": block_str if block_str else "",
+        "llm_model": "demo-generator-static-data",
+        "created_at": now.isoformat(),
+        "updated_at": now.isoformat()
     }
 
-    return data
+    return record
 
 
 # APIエンドポイント
@@ -590,26 +667,26 @@ async def list_personas():
 
 @app.post("/generate")
 async def generate_and_save(request: GenerateRequest):
-    """デモデータを生成してSupabaseに保存（3つのテーブル）"""
+    """Generate demo data and save to Supabase (spot_results + daily_results)"""
 
-    # Supabase接続確認
+    # Supabase connection check
     if not SUPABASE_URL or not SUPABASE_KEY:
         raise HTTPException(status_code=500, detail="Supabase credentials not configured")
 
-    # ペルソナ確認
+    # Persona validation
     if request.persona_id not in PERSONAS:
         raise HTTPException(status_code=404, detail=f"Persona '{request.persona_id}' not found")
 
-    # child_5yo以外は一旦スキップ
+    # Only child_5yo is supported for now
     if request.persona_id != "child_5yo":
         raise HTTPException(status_code=400, detail=f"Only 'child_5yo' is currently supported")
 
-    # 日付・時刻の決定
+    # Determine date and time
     jst_now = get_jst_time()
     date = request.date or str(jst_now.date())
 
     if request.time_block:
-        # 手動指定の時刻ブロック
+        # Manual time block specification
         try:
             hour, minute = map(int, request.time_block.split('-'))
             block_index = (hour * 2) + (1 if minute >= 30 else 0)
@@ -617,59 +694,38 @@ async def generate_and_save(request: GenerateRequest):
         except:
             raise HTTPException(status_code=400, detail="Invalid time_block format. Use HH-MM")
     else:
-        # 現在時刻から自動計算
+        # Auto-calculate from current time
         block_index, block_str = calculate_time_block(jst_now)
 
     try:
-        # 1. dashboard_summaryのデータ生成
-        demo_data = generate_demo_data(request.persona_id, date, block_index, block_str)
+        # Generate spot_results record
+        spot_record = generate_spot_result_record(request.persona_id, date, block_index, block_str)
 
-        # 2. behavior_summaryのデータ生成
-        behavior_data = generate_behavior_summary(block_index, request.persona_id)
-        behavior_record = {
-            "device_id": PERSONAS[request.persona_id]["device_id"],
-            "date": date,
-            "summary_ranking": behavior_data["summary_ranking"],
-            "time_blocks": behavior_data["time_blocks"]
-        }
+        # Generate daily_results record (cumulative)
+        daily_record = generate_daily_result_record(request.persona_id, date, block_index, block_str)
 
-        # 3. emotion_opensmile_summaryのデータ生成
-        emotion_graph = generate_emotion_graph(block_index, request.persona_id)
-        emotion_record = {
-            "device_id": PERSONAS[request.persona_id]["device_id"],
-            "date": date,
-            "emotion_graph": emotion_graph,
-            "file_path": "",
-            "created_at": get_jst_time().isoformat()
-        }
-
-        # 4. dashboardテーブル用のデータ生成（現在のtime_blockのみ）
-        dashboard_record = generate_dashboard_record(request.persona_id, date, block_index, block_str)
-
-        # Supabaseに保存（4つのテーブル）
+        # Save to Supabase
         supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-        # dashboard_summaryに保存
-        result1 = supabase.table("dashboard_summary").upsert(demo_data).execute()
+        # UPSERT to spot_results (primary key: device_id + recorded_at)
+        result1 = supabase.table("spot_results").upsert(spot_record).execute()
 
-        # behavior_summaryに保存
-        result2 = supabase.table("behavior_summary").upsert(behavior_record).execute()
-
-        # emotion_opensmile_summaryに保存
-        result3 = supabase.table("emotion_opensmile_summary").upsert(emotion_record).execute()
-
-        # dashboardに保存（UPSERT: 同じdevice_id+date+time_blockがあれば上書き）
-        result4 = supabase.table("dashboard").upsert(dashboard_record).execute()
+        # UPSERT to daily_results (primary key: device_id + local_date)
+        # This will overwrite the existing record for the same date (cumulative update)
+        result2 = supabase.table("daily_results").upsert(daily_record).execute()
 
         return {
             "success": True,
             "persona_id": request.persona_id,
-            "device_id": demo_data["device_id"],
+            "device_id": spot_record["device_id"],
             "date": date,
             "time_block": block_str,
-            "processed_count": demo_data["processed_count"],
-            "tables_updated": ["dashboard_summary", "behavior_summary", "emotion_opensmile_summary", "dashboard"],
-            "message": "Demo data generated and saved successfully to all tables"
+            "spot_recorded_at": spot_record["recorded_at"],
+            "spot_vibe_score": spot_record["vibe_score"],
+            "daily_vibe_score": daily_record["vibe_score"],
+            "daily_processed_count": daily_record["processed_count"],
+            "tables_updated": ["spot_results", "daily_results"],
+            "message": "Demo data generated and saved successfully to spot_results and daily_results"
         }
 
     except Exception as e:
