@@ -317,101 +317,101 @@ def generate_emotion_graph(block_index: int, persona_id: str) -> List:
 # 5歳児の1日のルーティン（48ブロック分のスタティックデータ）
 CHILD_5YO_DAILY_ROUTINE = [
     # 00:00-00:30 (0)
-    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 00:30-01:00 (1)
-    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 01:00-01:30 (2)
-    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 01:30-02:00 (3)
-    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 02:00-02:30 (4)
-    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 02:30-03:00 (5)
-    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 03:00-03:30 (6)
-    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 03:30-04:00 (7)
-    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 04:00-04:30 (8)
-    {"summary": "早朝、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "早朝、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 04:30-05:00 (9)
-    {"summary": "早朝、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "早朝、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 05:00-05:30 (10)
-    {"summary": "早朝、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "早朝、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 05:30-06:00 (11)
-    {"summary": "早朝、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "早朝、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 06:00-06:30 (12)
-    {"summary": "早朝、まだ睡眠中だが、そろそろ起床の時間。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "早朝、まだ睡眠中だが、そろそろ起床の時間。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 06:30-07:00 (13)
-    {"summary": "起床時刻。目覚めてゆっくりと起き上がる様子。", "behavior": "準備", "vibe_score": 10},
+    {"summary": "起床時刻。目覚めてゆっくりと起き上がる様子。", "behavior": "準備", "vibe_score": 10, "emotion": "中立"},
     # 07:00-07:30 (14)
-    {"summary": "朝の準備が始まる。着替えや洗面を行っている。", "behavior": "準備, 着替え, 歯磨き", "vibe_score": 20},
+    {"summary": "朝の準備が始まる。着替えや洗面を行っている。", "behavior": "準備, 着替え, 歯磨き", "vibe_score": 20, "emotion": "中立"},
     # 07:30-08:00 (15)
-    {"summary": "朝食の時間。家族と一緒に食事をしている。", "behavior": "食事, 家族団らん", "vibe_score": 35},
+    {"summary": "朝食の時間。家族と一緒に食事をしている。", "behavior": "食事, 家族団らん", "vibe_score": 35, "emotion": "喜び, 中立"},
     # 08:00-08:30 (16)
-    {"summary": "朝食後、幼稚園の準備を整えている。", "behavior": "準備", "vibe_score": 30},
+    {"summary": "朝食後、幼稚園の準備を整えている。", "behavior": "準備", "vibe_score": 30, "emotion": "中立"},
     # 08:30-09:00 (17)
-    {"summary": "幼稚園へ向かう時間。移動中または登園準備。", "behavior": "移動, 準備", "vibe_score": 25},
+    {"summary": "幼稚園へ向かう時間。移動中または登園準備。", "behavior": "移動, 準備", "vibe_score": 25, "emotion": "中立"},
     # 09:00-09:30 (18)
-    {"summary": "幼稚園に到着。友達と遊び始める。", "behavior": "遊び, 友達と遊ぶ", "vibe_score": 40},
+    {"summary": "幼稚園に到着。友達と遊び始める。", "behavior": "遊び, 友達と遊ぶ", "vibe_score": 40, "emotion": "喜び"},
     # 09:30-10:00 (19)
-    {"summary": "午前の活動時間。園での遊びや学習活動に参加。", "behavior": "遊び, 学習", "vibe_score": 35},
+    {"summary": "午前の活動時間。園での遊びや学習活動に参加。", "behavior": "遊び, 学習", "vibe_score": 35, "emotion": "喜び, 中立"},
     # 10:00-10:30 (20)
-    {"summary": "午前中、友達と元気に遊んでいる。", "behavior": "遊び, 友達と遊ぶ", "vibe_score": 40},
+    {"summary": "午前中、友達と元気に遊んでいる。", "behavior": "遊び, 友達と遊ぶ", "vibe_score": 40, "emotion": "喜び"},
     # 10:30-11:00 (21)
-    {"summary": "午前の活動が続く。ブロック遊びなどに夢中。", "behavior": "遊び", "vibe_score": 35},
+    {"summary": "午前の活動が続く。ブロック遊びなどに夢中。", "behavior": "遊び", "vibe_score": 35, "emotion": "喜び, 中立"},
     # 11:00-11:30 (22)
-    {"summary": "昼食前の活動。少しずつお腹が空いてくる時間。", "behavior": "遊び, 準備", "vibe_score": 30},
+    {"summary": "昼食前の活動。少しずつお腹が空いてくる時間。", "behavior": "遊び, 準備", "vibe_score": 30, "emotion": "中立"},
     # 11:30-12:00 (23)
-    {"summary": "給食の準備。手を洗い、配膳を待っている。", "behavior": "準備, 待機", "vibe_score": 25},
+    {"summary": "給食の準備。手を洗い、配膳を待っている。", "behavior": "準備, 待機", "vibe_score": 25, "emotion": "中立"},
     # 12:00-12:30 (24)
-    {"summary": "給食の時間。友達と一緒に楽しく食事。", "behavior": "食事, 友達と遊ぶ", "vibe_score": 45},
+    {"summary": "給食の時間。友達と一緒に楽しく食事。", "behavior": "食事, 友達と遊ぶ", "vibe_score": 45, "emotion": "喜び"},
     # 12:30-13:00 (25)
-    {"summary": "給食後、ゆっくりと休憩時間。", "behavior": "休憩", "vibe_score": 30},
+    {"summary": "給食後、ゆっくりと休憩時間。", "behavior": "休憩", "vibe_score": 30, "emotion": "中立"},
     # 13:00-13:30 (26)
-    {"summary": "午後の活動開始前の準備時間。", "behavior": "準備, 休憩", "vibe_score": 25},
+    {"summary": "午後の活動開始前の準備時間。", "behavior": "準備, 休憩", "vibe_score": 25, "emotion": "中立"},
     # 13:30-14:00 (27)
-    {"summary": "午後の活動。園庭で外遊びや運動。", "behavior": "遊び, 運動", "vibe_score": 40},
+    {"summary": "午後の活動。園庭で外遊びや運動。", "behavior": "遊び, 運動", "vibe_score": 40, "emotion": "喜び"},
     # 14:00-14:30 (28)
-    {"summary": "午後の活動が続く。友達と元気に遊ぶ。", "behavior": "遊び, 友達と遊ぶ", "vibe_score": 40},
+    {"summary": "午後の活動が続く。友達と元気に遊ぶ。", "behavior": "遊び, 友達と遊ぶ", "vibe_score": 40, "emotion": "喜び"},
     # 14:30-15:00 (29)
-    {"summary": "降園準備の時間。荷物をまとめている。", "behavior": "準備, 片付け", "vibe_score": 25},
+    {"summary": "降園準備の時間。荷物をまとめている。", "behavior": "準備, 片付け", "vibe_score": 25, "emotion": "中立"},
     # 15:00-15:30 (30)
-    {"summary": "幼稚園から帰宅。家に向かう移動中。", "behavior": "移動", "vibe_score": 20},
+    {"summary": "幼稚園から帰宅。家に向かう移動中。", "behavior": "移動", "vibe_score": 20, "emotion": "中立"},
     # 15:30-16:00 (31)
-    {"summary": "帰宅後、おやつの時間。少し休憩。", "behavior": "食事, 休憩", "vibe_score": 35},
+    {"summary": "帰宅後、おやつの時間。少し休憩。", "behavior": "食事, 休憩", "vibe_score": 35, "emotion": "喜び, 中立"},
     # 16:00-16:30 (32)
-    {"summary": "自由時間。マインクラフトで遊び始める。", "behavior": "ゲーム, 遊び", "vibe_score": 50},
+    {"summary": "自由時間。マインクラフトで遊び始める。", "behavior": "ゲーム, 遊び", "vibe_score": 50, "emotion": "喜び"},
     # 16:30-17:00 (33)
-    {"summary": "マインクラフトに夢中。楽しく遊んでいる。", "behavior": "ゲーム", "vibe_score": 55},
+    {"summary": "マインクラフトに夢中。楽しく遊んでいる。", "behavior": "ゲーム", "vibe_score": 55, "emotion": "喜び"},
     # 17:00-17:30 (34)
-    {"summary": "引き続きゲームや遊びを楽しんでいる。", "behavior": "ゲーム, 遊び", "vibe_score": 50},
+    {"summary": "引き続きゲームや遊びを楽しんでいる。", "behavior": "ゲーム, 遊び", "vibe_score": 50, "emotion": "喜び"},
     # 17:30-18:00 (35)
-    {"summary": "夕方の時間。少し疲れが見え始める。", "behavior": "休憩, 遊び", "vibe_score": 30},
+    {"summary": "夕方の時間。少し疲れが見え始める。", "behavior": "休憩, 遊び", "vibe_score": 30, "emotion": "中立"},
     # 18:00-18:30 (36)
-    {"summary": "夕食の準備時間。家族が集まり始める。", "behavior": "待機, 準備", "vibe_score": 25},
+    {"summary": "夕食の準備時間。家族が集まり始める。", "behavior": "待機, 準備", "vibe_score": 25, "emotion": "中立"},
     # 18:30-19:00 (37)
-    {"summary": "夕食の時間。家族で食卓を囲む。", "behavior": "食事, 家族団らん", "vibe_score": 45},
+    {"summary": "夕食の時間。家族で食卓を囲む。", "behavior": "食事, 家族団らん", "vibe_score": 45, "emotion": "喜び"},
     # 19:00-19:30 (38)
-    {"summary": "夕食後、家族とゆっくり過ごす時間。", "behavior": "家族団らん, 会話", "vibe_score": 40},
+    {"summary": "夕食後、家族とゆっくり過ごす時間。", "behavior": "家族団らん, 会話", "vibe_score": 40, "emotion": "喜び"},
     # 19:30-20:00 (39)
-    {"summary": "お風呂の時間。入浴の準備と入浴。", "behavior": "入浴, 準備", "vibe_score": 35},
+    {"summary": "お風呂の時間。入浴の準備と入浴。", "behavior": "入浴, 準備", "vibe_score": 35, "emotion": "喜び, 中立"},
     # 20:00-20:30 (40)
-    {"summary": "お風呂上がり。就寝準備を始める。", "behavior": "準備, 歯磨き", "vibe_score": 25},
+    {"summary": "お風呂上がり。就寝準備を始める。", "behavior": "準備, 歯磨き", "vibe_score": 25, "emotion": "中立"},
     # 20:30-21:00 (41)
-    {"summary": "就寝前のリラックスタイム。絵本を読んだりテレビを見る。", "behavior": "休憩, 読書, テレビ", "vibe_score": 20},
+    {"summary": "就寝前のリラックスタイム。絵本を読んだりテレビを見る。", "behavior": "休憩, 読書, テレビ", "vibe_score": 20, "emotion": "中立"},
     # 21:00-21:30 (42)
-    {"summary": "就寝時刻。布団に入り、眠りにつく準備。", "behavior": "睡眠, 準備", "vibe_score": 10},
+    {"summary": "就寝時刻。布団に入り、眠りにつく準備。", "behavior": "睡眠, 準備", "vibe_score": 10, "emotion": "中立"},
     # 21:30-22:00 (43)
-    {"summary": "就寝。静かに眠りについている。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "就寝。静かに眠りについている。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 22:00-22:30 (44)
-    {"summary": "夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 22:30-23:00 (45)
-    {"summary": "夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 23:00-23:30 (46)
-    {"summary": "夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
     # 23:30-00:00 (47)
-    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0},
+    {"summary": "深夜、静かに睡眠中。", "behavior": "睡眠", "vibe_score": 0, "emotion": "中立"},
 ]
 
 
@@ -450,40 +450,12 @@ def generate_spot_result_record(persona_id: str, date: str, block_index: int, bl
     # Local time (keep JST)
     local_time = recorded_at_jst
 
-    # Generate profile_result JSONB structure (matching CSV sample)
+    # Generate profile_result JSONB structure (matching production data format)
     profile_result = {
         "summary": routine_data["summary"],
         "behavior": routine_data["behavior"],
         "vibe_score": routine_data["vibe_score"],
-        "recorded_at": recorded_at_utc.isoformat(),
-        "acoustic_metrics": {
-            "loudness_range": [-43.0 + (block_index % 10), -18.0 + (block_index % 5)],
-            "dominant_patterns": [
-                {"type": "voice", "count": 2 + (block_index % 3)},
-                {"type": "white_noise", "frequency": "frequent"},
-                {"type": "environmental_sound", "detected": True}
-            ],
-            "pitch_variability": "moderate" if routine_data["vibe_score"] > 20 else "monotone",
-            "rhythm_regularity": 0.6 + (block_index % 10) * 0.01,
-            "speech_time_ratio": 0.04 + (block_index % 20) * 0.01,
-            "average_loudness_db": -26.5 + (block_index % 15),
-            "voice_stability_score": 0.08 + (block_index % 30) * 0.01
-        },
-        "key_observations": [
-            f"Time block: {block_str}",
-            routine_data["summary"],
-            f"Behavior pattern: {routine_data['behavior']}"
-        ],
-        "behavioral_analysis": {
-            "behavior_pattern": routine_data["summary"],
-            "situation_context": f"Demo data for {persona['name']} at {block_str}",
-            "detected_activities": routine_data["behavior"].split(", ")
-        },
-        "psychological_analysis": {
-            "mood_state": "positive" if routine_data["vibe_score"] > 20 else "neutral" if routine_data["vibe_score"] >= 0 else "negative",
-            "emotion_changes": "stable emotional state during this time block",
-            "mood_description": routine_data["summary"]
-        }
+        "emotion": routine_data["emotion"]
     }
 
     # spot_results record
@@ -496,6 +468,7 @@ def generate_spot_result_record(persona_id: str, date: str, block_index: int, bl
         "llm_model": "demo-generator-static-data",
         "summary": routine_data["summary"],
         "behavior": routine_data["behavior"],
+        "emotion": routine_data["emotion"],
         "local_date": date,
         "local_time": local_time.isoformat(),
         "daily_aggregator_status": None,
